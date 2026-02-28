@@ -1,0 +1,50 @@
+.login-panel {
+  max-width: 380px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid rgba(221, 226, 240, 0.15);
+  border-radius: 14px;
+  display: grid;
+  gap: 1rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.login-label {
+  color: #bdc8df;
+  font-size: 0.9rem;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(175, 190, 220, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: #ecf1ff;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  outline: 1px solid #8ac8ff;
+  outline-offset: 1px;
+  border-color: rgba(138, 200, 255, 0.5);
+}
+
+.login-input:disabled {
+  opacity: 0.5;
+}
+
+.mode-toggle {
+  background: none;
+  border: none;
+  color: #8ac8ff;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
