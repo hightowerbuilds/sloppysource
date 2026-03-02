@@ -58,6 +58,7 @@ export async function putDocument(document: StoredDocument): Promise<StoredDocum
   const { data: usageData, error: usageError } = await supabase
     .from('documents')
     .select('size_bytes')
+    .eq('user_id', user.id)
     .neq('id', document.id)
 
   if (usageError) throw new Error(usageError.message)
@@ -103,10 +104,14 @@ export async function putDocument(document: StoredDocument): Promise<StoredDocum
 }
 
 export async function deleteDocument(id: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('You must be logged in.')
+
   const { error } = await supabase
     .from('documents')
     .delete()
     .eq('id', id)
+    .eq('user_id', user.id)
 
   if (error) throw new Error(error.message)
 }
@@ -124,9 +129,13 @@ export async function clearDocuments(): Promise<void> {
 }
 
 export async function getUserStorageUsage(): Promise<{ usedBytes: number; limitBytes: number }> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('You must be logged in.')
+
   const { data, error } = await supabase
     .from('documents')
     .select('size_bytes')
+    .eq('user_id', user.id)
 
   if (error) throw new Error(error.message)
 

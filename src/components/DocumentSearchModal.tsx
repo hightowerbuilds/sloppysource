@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 interface DocumentSearchModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ interface SearchResult {
 }
 
 const MAX_MATCH_LINES = 500;
+const MATCHES_PER_PAGE = 100;
 const SNIPPET_PADDING = 40;
 
 export function DocumentSearchModal({
@@ -38,17 +39,38 @@ export function DocumentSearchModal({
 }: DocumentSearchModalProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [options, setOptions] = useState<SearchOptions>({
     caseSensitive: false,
     wholeWord: false,
     regex: false,
   });
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateDebouncedQuery = useCallback((value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(value);
+    }, 250);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
   const lines = useMemo(() => markdown.split(/\r?\n/), [markdown]);
 
   const searchResult = useMemo(
-    () => searchMarkdownLines(lines, query.trim(), options),
-    [lines, query, options],
+    () => searchMarkdownLines(lines, debouncedQuery.trim(), options),
+    [lines, debouncedQuery, options],
   );
 
   useEffect(() => {
@@ -119,7 +141,11 @@ export function DocumentSearchModal({
             className="search-input"
             type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setCurrentPage(1);
+              updateDebouncedQuery(event.target.value);
+            }}
             placeholder="Search text or regex"
           />
           <div className="search-options">
@@ -169,16 +195,15 @@ export function DocumentSearchModal({
           {query.trim() ? (
             <>
               <span>
-                {searchResult.totalOccurrences.toLocaleString()} match
-                {searchResult.totalOccurrences === 1 ? "" : "es"} across{" "}
-                {searchResult.totalMatchedLines.toLocaleString()} line
-                {searchResult.totalMatchedLines === 1 ? "" : "s"}
+                {searchResult.isTruncated ? (
+                  <>{MAX_MATCH_LINES.toLocaleString()}+ matches (showing first {MAX_MATCH_LINES.toLocaleString()} lines)</>
+                ) : (
+                  <>{searchResult.totalOccurrences.toLocaleString()} match
+                  {searchResult.totalOccurrences === 1 ? "" : "es"} across{" "}
+                  {searchResult.totalMatchedLines.toLocaleString()} line
+                  {searchResult.totalMatchedLines === 1 ? "" : "s"}</>
+                )}
               </span>
-              {searchResult.isTruncated ? (
-                <span className="hint">
-                  Showing first {MAX_MATCH_LINES.toLocaleString()} matching lines.
-                </span>
-              ) : null}
             </>
           ) : (
             <span className="hint">
@@ -201,20 +226,41 @@ export function DocumentSearchModal({
           ) : searchResult.matches.length === 0 ? (
             <p className="empty">No matching lines found.</p>
           ) : (
-            <ul className="search-result-list">
-              {searchResult.matches.map((match) => (
-                <li
-                  className="search-result-item"
-                  key={`${match.lineNumber}-${match.preview}`}
-                >
-                  <p className="search-result-meta">
-                    Line {match.lineNumber} · {match.occurrences} match
-                    {match.occurrences === 1 ? "" : "es"}
-                  </p>
-                  <pre className="search-result-preview">{match.preview}</pre>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="search-result-list">
+                {searchResult.matches
+                  .slice((currentPage - 1) * MATCHES_PER_PAGE, currentPage * MATCHES_PER_PAGE)
+                  .map((match) => (
+                  <li
+                    className="search-result-item"
+                    key={`${match.lineNumber}-${match.preview}`}
+                  >
+                    <p className="search-result-meta">
+                      Line {match.lineNumber} · {match.occurrences} match
+                      {match.occurrences === 1 ? "" : "es"}
+                    </p>
+                    <pre className="search-result-preview">{match.preview}</pre>
+                  </li>
+                ))}
+              </ul>
+              {searchResult.matches.length > MATCHES_PER_PAGE ? (
+                <nav className="search-pagination" aria-label="Search result pages">
+                  {Array.from(
+                    { length: Math.ceil(searchResult.matches.length / MATCHES_PER_PAGE) },
+                    (_, i) => i + 1,
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      className={`search-page-button${page === currentPage ? " is-active" : ""}`}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </nav>
+              ) : null}
+            </>
           )}
         </div>
       </section>
@@ -266,10 +312,9 @@ function searchByRegex(
   }
 
   const matches: LineMatch[] = [];
-  let totalOccurrences = 0;
-  let totalMatchedLines = 0;
 
-  lines.forEach((line, index) => {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     regex.lastIndex = 0;
 
     let occurrences = 0;
@@ -293,14 +338,17 @@ function searchByRegex(
     }
 
     if (occurrences === 0) {
-      return;
+      continue;
     }
 
-    totalOccurrences += occurrences;
-    totalMatchedLines += 1;
-
     if (matches.length >= MAX_MATCH_LINES) {
-      return;
+      return {
+        matches,
+        totalOccurrences: -1,
+        totalMatchedLines: -1,
+        isTruncated: true,
+        errorMessage: null,
+      };
     }
 
     matches.push({
@@ -308,13 +356,15 @@ function searchByRegex(
       occurrences,
       preview: createPreview(line, firstMatchIndex, firstMatchLength),
     });
-  });
+  }
+
+  const totalOccurrences = matches.reduce((sum, m) => sum + m.occurrences, 0);
 
   return {
     matches,
     totalOccurrences,
-    totalMatchedLines,
-    isTruncated: totalMatchedLines > MAX_MATCH_LINES,
+    totalMatchedLines: matches.length,
+    isTruncated: false,
     errorMessage: null,
   };
 }
@@ -326,10 +376,9 @@ function searchBySubstring(
 ): SearchResult {
   const matches: LineMatch[] = [];
   const normalizedQuery = options.caseSensitive ? query : query.toLowerCase();
-  let totalOccurrences = 0;
-  let totalMatchedLines = 0;
 
-  lines.forEach((line, index) => {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     const searchTarget = options.caseSensitive ? line : line.toLowerCase();
     let occurrences = 0;
     let fromIndex = 0;
@@ -357,14 +406,17 @@ function searchBySubstring(
     }
 
     if (occurrences === 0) {
-      return;
+      continue;
     }
 
-    totalOccurrences += occurrences;
-    totalMatchedLines += 1;
-
     if (matches.length >= MAX_MATCH_LINES) {
-      return;
+      return {
+        matches,
+        totalOccurrences: -1,
+        totalMatchedLines: -1,
+        isTruncated: true,
+        errorMessage: null,
+      };
     }
 
     matches.push({
@@ -372,13 +424,15 @@ function searchBySubstring(
       occurrences,
       preview: createPreview(line, firstMatchIndex, query.length),
     });
-  });
+  }
+
+  const totalOccurrences = matches.reduce((sum, m) => sum + m.occurrences, 0);
 
   return {
     matches,
     totalOccurrences,
-    totalMatchedLines,
-    isTruncated: totalMatchedLines > MAX_MATCH_LINES,
+    totalMatchedLines: matches.length,
+    isTruncated: false,
     errorMessage: null,
   };
 }
