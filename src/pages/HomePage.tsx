@@ -9,15 +9,12 @@ import {
   putDocument,
   type StoredDocument,
 } from "../lib/supabaseDb.ts";
+import { formatBytes, formatDate } from "../lib/format.ts";
 import "./HomePage.css";
 
 const MAX_MARKDOWN_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_EXTENSIONS = [".md", ".markdown"];
 const DOCUMENTS_QUERY_KEY = ["documents"] as const;
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 export const Route = createLazyRoute("/")({
   component: HomePage,
@@ -80,10 +77,7 @@ function HomePage() {
     },
   });
 
-  const documents = useMemo(
-    () => documentsQuery.data ?? [],
-    [documentsQuery.data],
-  );
+  const documents = documentsQuery.data ?? [];
   const isLoadingDocuments = documentsQuery.isPending;
   const isUploading = uploadMutation.isPending;
   const isDumping = dumpMutation.isPending;
@@ -305,37 +299,7 @@ function createDocumentKey(fileName: string): string {
       .replace(/(^-|-$)/g, "")
       .slice(0, 40) || "md-file";
 
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return `${normalizedName}-${Date.now()}-${crypto.randomUUID()}`;
-  }
-
-  return `${normalizedName}-${Date.now()}-${Math.random()
-    .toString(16)
-    .slice(2)}`;
-}
-
-function formatBytes(sizeBytes: number): string {
-  if (sizeBytes < 1024) {
-    return `${sizeBytes} B`;
-  }
-
-  const units = ["KB", "MB", "GB"];
-  let value = sizeBytes / 1024;
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${value.toFixed(1)} ${units[unitIndex]}`;
-}
-
-function formatDate(value: string): string {
-  return dateFormatter.format(new Date(value));
+  return `${normalizedName}-${Date.now()}-${crypto.randomUUID()}`;
 }
 
 function getErrorMessage(error: unknown, fallbackMessage: string | null): string | null {

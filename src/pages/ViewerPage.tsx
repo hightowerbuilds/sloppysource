@@ -5,21 +5,11 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { DocumentSearchModal } from "../components/DocumentSearchModal.tsx";
 import { deleteDocument, getDocument } from "../lib/supabaseDb.ts";
+import { formatBytes, formatDate } from "../lib/format.ts";
 import "./ViewerPage.css";
 
 const DOCUMENTS_QUERY_KEY = ["documents"] as const;
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-const markdownComponents: Components = {
-  h1: "p",
-  h2: "p",
-  h3: "p",
-  h4: "p",
-  h5: "p",
-  h6: "p",
-};
+const markdownComponents: Components = {};
 const remarkPluginsConfig = [remarkGfm];
 
 export const Route = createLazyRoute("/doc/$docId")({
@@ -77,6 +67,11 @@ function ViewerPage() {
   }, [document]);
 
   async function handleDelete() {
+    const shouldDelete = window.confirm(
+      `Delete "${document?.name ?? "this document"}"?`,
+    );
+    if (!shouldDelete) return;
+
     setErrorMessage(null);
 
     try {
@@ -157,23 +152,3 @@ function ViewerPage() {
   );
 }
 
-function formatBytes(sizeBytes: number): string {
-  if (sizeBytes < 1024) {
-    return `${sizeBytes} B`;
-  }
-
-  const units = ["KB", "MB", "GB"];
-  let value = sizeBytes / 1024;
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${value.toFixed(1)} ${units[unitIndex]}`;
-}
-
-function formatDate(value: string): string {
-  return dateFormatter.format(new Date(value));
-}

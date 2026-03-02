@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { supabase } from "../lib/supabase.ts";
 import "../App.css";
 
@@ -28,8 +28,6 @@ export function RootLayout() {
   }
 
   const username = user?.user_metadata?.username as string | undefined;
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isOnDocPage = pathname.startsWith("/doc/");
 
   return (
     <main className="app-shell">
@@ -40,11 +38,6 @@ export function RootLayout() {
             <Link to="/" className="nav-button" activeOptions={{ exact: true }}>
               List
             </Link>
-            <span
-              className={`nav-button${isOnDocPage ? " is-active" : " is-disabled"}`}
-            >
-              Display
-            </span>
             <span className="nav-separator" />
             <span className="nav-user">{username ?? "User"}</span>
             <button
