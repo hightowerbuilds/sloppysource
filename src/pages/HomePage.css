@@ -1,23 +1,14 @@
-.top-panels {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+.workspace {
+  min-height: min(70vh, 780px);
+  display: block;
 }
 
-.toolbar {
-  padding: 1rem 1.2rem;
+.home-page {
+  min-width: 0;
+  padding: 1rem clamp(0.9rem, 2vw, 1.5rem) 1.35rem;
   display: grid;
-  gap: 0.55rem;
-  border: 1px solid rgba(221, 226, 240, 0.15);
-  border-radius: 14px;
-  background: transparent;
-}
-
-.local-view {
-  padding: 1rem 1.2rem;
-  display: grid;
-  gap: 0.55rem;
-  align-content: start;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0.85rem;
   border: 1px solid rgba(221, 226, 240, 0.15);
   border-radius: 14px;
   background: transparent;
@@ -58,23 +49,21 @@
 }
 
 .library {
-  padding: 1rem;
+  padding: 0;
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 0.9rem;
   align-content: start;
   min-height: 260px;
-  border: 1px solid rgba(221, 226, 240, 0.15);
-  border-radius: 14px;
-  background: transparent;
 }
 
 .library-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.library-header span {
+.library-count {
   font-variant-numeric: tabular-nums;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
@@ -94,28 +83,23 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.55rem;
-  max-height: 320px;
+  gap: 0.45rem;
+  max-height: 420px;
   overflow-y: auto;
   padding-right: 0.2rem;
 }
 
-.document-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.45rem;
-}
-
 .document-button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   border: 1px solid rgba(175, 190, 220, 0.18);
   border-radius: 10px;
   background: transparent;
   color: inherit;
-  padding: 0.56rem 0.65rem;
+  padding: 0.5rem 0.65rem;
   text-align: left;
   text-decoration: none;
-  display: grid;
-  gap: 0.2rem;
   cursor: pointer;
 }
 
@@ -139,13 +123,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.document-name-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
+  flex: 1;
 }
 
 .duplicate-chip {
@@ -160,9 +138,11 @@
 }
 
 .document-meta {
+  flex-shrink: 0;
   font-size: 0.78rem;
   color: #a9b5cf;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .delete-button {
@@ -184,60 +164,8 @@
   cursor: default;
 }
 
-.dump-button {
-  width: fit-content;
-  border: 1px solid rgba(255, 161, 161, 0.45);
-  border-radius: 8px;
-  background: transparent;
-  color: #ffd1d1;
-  padding: 0.28rem 0.64rem;
-  cursor: pointer;
-}
-
-.dump-button:hover:enabled {
-  border-color: rgba(255, 161, 161, 0.72);
-}
-
-.dump-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.local-stat {
-  margin: 0;
-  color: #d7ddef;
-  font-size: 0.92rem;
-}
-
-.quota-bar-container {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.quota-bar-track {
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(175, 190, 220, 0.15);
-  overflow: hidden;
-}
-
-.quota-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: #8ac8ff;
-  transition: width 300ms ease;
-}
-
-.quota-bar-fill.is-warning {
-  background: #ffb347;
-}
-
-.quota-bar-fill.is-danger {
-  background: #ff6d6d;
-}
-
 @media (max-width: 940px) {
-  .top-panels {
-    grid-template-columns: 1fr;
+  .workspace {
+    min-height: initial;
   }
 }

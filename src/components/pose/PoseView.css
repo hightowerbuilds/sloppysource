@@ -1,0 +1,106 @@
+.pose-view {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  z-index: var(--pose-outer-index);
+  --pose-tilt-x: 17deg;
+  --pose-tilt-y: 0deg;
+  --pose-node-y-step: 0deg;
+}
+
+.pose-view-stage {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  isolation: isolate;
+  display: grid;
+  align-items: center;
+  perspective: 860px;
+}
+
+.pose-view-page {
+  position: relative;
+  width: 100%;
+  min-height: min(420px, 100%);
+  max-height: 100%;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  border: 1px solid rgba(170, 189, 223, 0.16);
+  border-radius: 12px;
+  background:
+    linear-gradient(165deg, rgba(20, 28, 42, 0.5), rgba(8, 12, 19, 0.5));
+  box-shadow:
+    inset 0 1px 0 rgba(216, 228, 255, 0.08),
+    0 16px 34px rgba(2, 4, 8, 0.38);
+  padding: clamp(1rem, 2.2vw, 1.6rem);
+  transform-style: preserve-3d;
+  transform-origin: 50% 88%;
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.pose-view-elements {
+  position: relative;
+  z-index: var(--pose-element-index);
+  width: min(92%, 980px);
+  min-height: 100%;
+  display: grid;
+  align-content: center;
+  transform-style: preserve-3d;
+}
+
+.pose-view-elements > * {
+  position: relative;
+  z-index: var(--pose-element-index);
+}
+
+.pose-view-elements > *:first-child {
+  margin-top: 0;
+}
+
+.pose-view-elements > *:last-child {
+  margin-bottom: 0;
+}
+
+.pose-view-elements [data-pose-node] {
+  transform-style: preserve-3d;
+  transition: transform 340ms ease, text-shadow 340ms ease, filter 340ms ease;
+  will-change: transform;
+  text-shadow: 0 1px 0 rgba(2, 3, 8, 0.18);
+}
+
+.pose-view-stage.is-exploded .pose-view-page {
+  transform:
+    rotateX(var(--pose-tilt-x))
+    rotateY(var(--pose-tilt-y))
+    translateZ(-118px);
+  box-shadow:
+    inset 0 1px 0 rgba(216, 228, 255, 0.1),
+    0 36px 76px rgba(2, 4, 8, 0.6);
+}
+
+.pose-view-stage.is-exploded .pose-view-elements [data-pose-node] {
+  font-size: 200%;
+  transform:
+    translateZ(calc(var(--pose-depth-index, 1) * 24px))
+    rotateX(calc(var(--pose-depth-index, 1) * 0.55deg))
+    rotateY(calc(var(--pose-depth-index, 1) * var(--pose-node-y-step)));
+  text-shadow:
+    0 1px 0 rgba(2, 3, 8, 0.45),
+    0 8px 20px rgba(2, 3, 8, 0.35);
+  filter: saturate(1.06) contrast(1.03);
+}
+
+.pose-empty {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #aebad4;
+}
+
+.pose-empty p {
+  margin: 0;
+}

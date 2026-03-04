@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createLazyRoute, useNavigate } from "@tanstack/react-router";
 import {
-  clearDocuments,
-  getUserStorageUsage,
   listDocuments,
   putDocument,
+  type DocumentMeta,
   type StoredDocument,
 } from "../lib/supabaseDb.ts";
+import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
 import { formatBytes, formatDate } from "../lib/format.ts";
 import "./HomePage.css";
 
@@ -23,6 +23,8 @@ export const Route = createLazyRoute("/")({
 function HomePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { docId, setDocId } = useSelectedDoc();
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const documentsQuery = useQuery({
@@ -31,14 +33,8 @@ function HomePage() {
     staleTime: 30_000,
   });
 
-  const storageQuery = useQuery({
-    queryKey: ["storage-usage"],
-    queryFn: getUserStorageUsage,
-    staleTime: 30_000,
-  });
-
   const uploadMutation = useMutation<StoredDocument, Error, File>({
-    mutationFn: async (file) => {
+    mutationFn: async (file: File) => {
       const markdown = await file.text();
 
       if (!markdown.trim()) {
@@ -57,30 +53,19 @@ function HomePage() {
 
       return putDocument(documentToSave);
     },
-    onSuccess: async (savedDocument) => {
+    onSuccess: async (savedDocument: StoredDocument) => {
       setErrorMessage(null);
+      setDocId(savedDocument.id);
       await queryClient.invalidateQueries({ queryKey: DOCUMENTS_QUERY_KEY });
       await queryClient.invalidateQueries({ queryKey: ["document", savedDocument.id] });
       await queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
-      await navigate({ to: "/doc/$docId", params: { docId: savedDocument.id } });
+      await navigate({ to: "/display" });
     },
   });
 
-  const dumpMutation = useMutation<void, Error>({
-    mutationFn: async () => {
-      await clearDocuments();
-    },
-    onSuccess: async () => {
-      setErrorMessage(null);
-      await queryClient.invalidateQueries({ queryKey: DOCUMENTS_QUERY_KEY });
-      await queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
-    },
-  });
-
-  const documents = documentsQuery.data ?? [];
+  const documents = useMemo(() => documentsQuery.data ?? [], [documentsQuery.data]);
   const isLoadingDocuments = documentsQuery.isPending;
   const isUploading = uploadMutation.isPending;
-  const isDumping = dumpMutation.isPending;
 
   const duplicateNameCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -90,19 +75,6 @@ function HomePage() {
     }
 
     return counts;
-  }, [documents]);
-
-  const localSummary = useMemo(() => {
-    const totalSizeBytes = documents.reduce(
-      (total, document) => total + document.sizeBytes,
-      0,
-    );
-
-    return {
-      documentCount: documents.length,
-      totalSizeBytes,
-      lastUpdatedAt: documents[0]?.updatedAt ?? null,
-    };
   }, [documents]);
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -129,64 +101,43 @@ function HomePage() {
     }
   }
 
-  async function handleDumpDocuments() {
-    if (documents.length === 0 || isDumping) {
-      return;
-    }
-
-    const shouldDump = window.confirm(
-      `Delete all ${documents.length} markdown file(s) from your account?`,
-    );
-
-    if (!shouldDump) {
-      return;
-    }
-
-    setErrorMessage(null);
-
-    try {
-      await dumpMutation.mutateAsync();
-    } catch (error) {
-      setErrorMessage(
-        getErrorMessage(error, "Failed to dump local markdown documents."),
-      );
-    }
+  function handleUploadClick() {
+    uploadInputRef.current?.click();
   }
 
   const displayedErrorMessage =
     errorMessage ?? getErrorMessage(documentsQuery.error, null);
 
   return (
-    <>
-      <section className="top-panels">
-        <section className="toolbar">
-          <p className="section-title">Upload</p>
-          <label className="upload-button" htmlFor="markdown-upload">
-            {isUploading ? "Uploading..." : "Upload .md"}
-          </label>
+    <section className="workspace">
+      <div className="home-page">
+        <section className="library" aria-label="Uploaded markdown documents">
+          <div className="library-header">
+            <p className="section-title">MD Files</p>
+            <span className="library-count">{documents.length}</span>
+            <button
+              className="upload-button library-upload-button"
+              type="button"
+              onClick={handleUploadClick}
+              disabled={isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload .md"}
+            </button>
+          </div>
           <input
+            ref={uploadInputRef}
             className="upload-input"
-            id="markdown-upload"
             type="file"
             accept=".md,.markdown,text/markdown"
             onChange={handleUpload}
             disabled={isUploading}
           />
-          <p className="hint">
-            Max file size: 5MB. Same filenames are saved as separate records.
-          </p>
+
           {displayedErrorMessage ? (
             <p className="status error" role="status">
               {displayedErrorMessage}
             </p>
           ) : null}
-        </section>
-
-        <aside className="library" aria-label="Uploaded markdown documents">
-          <div className="library-header">
-            <p className="section-title">MD Files</p>
-            <span>{documents.length}</span>
-          </div>
 
           {isLoadingDocuments ? <p className="empty">Loading documents...</p> : null}
 
@@ -196,24 +147,25 @@ function HomePage() {
 
           {!isLoadingDocuments && documents.length > 0 ? (
             <ul className="document-list">
-              {documents.map((document) => {
+              {documents.map((document: DocumentMeta) => {
                 const isDuplicate = (duplicateNameCounts.get(document.name) ?? 0) > 1;
 
                 return (
                   <li className="document-item" key={document.id}>
                     <Link
-                      className="document-button"
-                      to="/doc/$docId"
-                      params={{ docId: document.id }}
+                      className={`document-button${docId === document.id ? " is-active" : ""}`}
+                      to="/display"
+                      onClick={() => setDocId(document.id)}
                     >
-                      <span className="document-name-row">
-                        <span className="document-name">{document.name}</span>
-                        {isDuplicate ? (
-                          <span className="duplicate-chip">Duplicate</span>
-                        ) : null}
+                      <span className="document-name">{document.name}</span>
+                      {isDuplicate ? (
+                        <span className="duplicate-chip">Duplicate</span>
+                      ) : null}
+                      <span className="document-meta">
+                        {formatBytes(document.sizeBytes)}
                       </span>
                       <span className="document-meta">
-                        {formatBytes(document.sizeBytes)} · {formatDate(document.updatedAt)}
+                        {formatDate(document.updatedAt)}
                       </span>
                     </Link>
                   </li>
@@ -221,52 +173,9 @@ function HomePage() {
               })}
             </ul>
           ) : null}
-        </aside>
-
-        <section className="local-view" aria-label="Storage usage">
-          <p className="section-title">Storage</p>
-          <p className="hint">Stored in your SloppySource account.</p>
-          <p className="local-stat">Docs: {localSummary.documentCount}</p>
-          <p className="local-stat">
-            Used: {formatBytes(localSummary.totalSizeBytes)} / 100 MB
-          </p>
-          {storageQuery.data ? (
-            <div className="quota-bar-container">
-              <div className="quota-bar-track">
-                <div
-                  className={`quota-bar-fill${
-                    storageQuery.data.usedBytes / storageQuery.data.limitBytes > 0.9
-                      ? " is-danger"
-                      : storageQuery.data.usedBytes / storageQuery.data.limitBytes > 0.7
-                        ? " is-warning"
-                        : ""
-                  }`}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (storageQuery.data.usedBytes / storageQuery.data.limitBytes) * 100,
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-          ) : null}
-          <p className="local-stat">
-            Last update:{" "}
-            {localSummary.lastUpdatedAt ? formatDate(localSummary.lastUpdatedAt) : "None yet"}
-          </p>
-          <button
-            className="dump-button"
-            disabled={isDumping || localSummary.documentCount === 0}
-            onClick={() => void handleDumpDocuments()}
-            type="button"
-          >
-            {isDumping ? "Deleting..." : "Delete All"}
-          </button>
-          <p className="hint">Removes all your markdown files at once.</p>
         </section>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 

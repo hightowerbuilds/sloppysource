@@ -1,0 +1,18 @@
+.ascii-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b7c4df;
+  font-size: 0.88rem;
+}
+
+.ascii-loader-frame {
+  display: inline-block;
+  min-width: 6ch;
+  font-family: 'Iosevka', 'SFMono-Regular', ui-monospace, 'Cascadia Code', monospace;
+  color: #9fb0ce;
+}
+
+.ascii-loader-label {
+  color: inherit;
+}
