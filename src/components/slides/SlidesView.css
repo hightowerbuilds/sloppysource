@@ -1,0 +1,322 @@
+.slides-view {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+}
+
+.slides-view.is-vertical {
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.slides-empty-state {
+  place-items: center;
+  color: #aebad4;
+}
+
+.slides-empty-state p {
+  margin: 0;
+}
+
+.slides-stage-shell {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.slides-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.slides-position {
+  margin: 0;
+  color: #9fb0ce;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  min-width: 7rem;
+  text-align: center;
+}
+
+.slides-nav-button {
+  border: 1px solid rgba(175, 190, 220, 0.28);
+  border-radius: 0;
+  background: transparent;
+  color: #bdc8df;
+  padding: 0.25rem 0.58rem;
+  font: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.slides-nav-button:hover:not(:disabled) {
+  background: rgba(144, 238, 144, 0.25);
+}
+
+.slides-nav-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.slides-stage {
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(170, 189, 223, 0.15);
+  border-radius: 12px;
+  background: rgba(6, 10, 16, 0.25);
+}
+
+.slides-card {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.7rem;
+}
+
+.slides-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.slides-card-tag {
+  border: 1px solid rgba(145, 166, 204, 0.45);
+  color: #9fc6ff;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.3rem;
+}
+
+.slides-card-line {
+  color: #8fa0bf;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.slides-card-content {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid rgba(170, 189, 223, 0.12);
+  border-radius: 10px;
+  background: rgba(10, 15, 24, 0.62);
+  padding: clamp(0.9rem, 1.8vw, 1.35rem);
+}
+
+.slides-card-loading {
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.slides-markdown > *:first-child {
+  margin-top: 0;
+}
+
+.slides-markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.slides-markdown h1,
+.slides-markdown h2,
+.slides-markdown h3,
+.slides-markdown h4,
+.slides-markdown h5,
+.slides-markdown h6 {
+  color: #ecf1ff;
+  line-height: 1.35;
+  margin: 1.2em 0 0.45em;
+}
+
+.slides-markdown h1 { font-size: 2.02em; }
+.slides-markdown h2 { font-size: 1.68em; }
+.slides-markdown h3 { font-size: 1.4em; }
+.slides-markdown h4 { font-size: 1.22em; }
+.slides-markdown h5 { font-size: 1.08em; }
+.slides-markdown h6 { font-size: 1em; }
+
+.slides-markdown p,
+.slides-markdown li {
+  color: #d7ddef;
+  line-height: 1.62;
+}
+
+.slides-markdown pre {
+  overflow-x: auto;
+  border-radius: 10px;
+  padding: 0.66rem 0.76rem;
+  background: rgba(8, 11, 17, 0.95);
+}
+
+.slides-markdown code {
+  font-family: 'Iosevka', 'SFMono-Regular', ui-monospace, 'Cascadia Code', monospace;
+  font-size: 0.92em;
+}
+
+.slides-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.slides-markdown th,
+.slides-markdown td {
+  border: 1px solid rgba(176, 196, 231, 0.22);
+  padding: 0.38rem 0.5rem;
+}
+
+.slides-markdown blockquote {
+  margin: 1rem 0;
+  padding-left: 0.9rem;
+  border-left: 4px solid rgba(141, 197, 255, 0.48);
+  color: #b8c6e3;
+}
+
+.slides-thumbnails {
+  display: flex;
+  align-items: stretch;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.1rem 0.05rem 0.2rem;
+}
+
+.slides-view.is-vertical .slides-stage-shell {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.slides-view.is-vertical .slides-stage {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0.8rem;
+}
+
+.slides-view.is-vertical .slides-card {
+  width: min(100%, 980px);
+  height: min(100%, 760px);
+  max-height: 100%;
+  justify-self: center;
+  align-self: center;
+}
+
+.slides-view.is-vertical .slides-thumbnails {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 300px;
+  max-width: 300px;
+  height: 100%;
+  display: grid;
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.1rem 0.1rem 0.1rem 0;
+}
+
+.slides-thumbnail {
+  min-width: 180px;
+  max-width: 220px;
+  border: 1px solid rgba(170, 189, 223, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 14, 21, 0.85);
+  color: #d7ddef;
+  padding: 0.44rem 0.5rem;
+  display: grid;
+  gap: 0.28rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.slides-view.is-vertical .slides-thumbnail {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.slides-thumbnail:hover {
+  border-color: rgba(170, 189, 223, 0.35);
+  background: rgba(16, 23, 35, 0.9);
+}
+
+.slides-thumbnail.is-active {
+  border-color: rgba(138, 200, 255, 0.75);
+  background: rgba(138, 200, 255, 0.15);
+}
+
+.slides-thumbnail-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.slides-thumbnail-index {
+  color: #90a4c8;
+  font-size: 0.73rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.slides-thumbnail-tag {
+  border: 1px solid rgba(145, 166, 204, 0.42);
+  color: #9fc6ff;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.02rem 0.28rem;
+}
+
+.slides-thumbnail-text {
+  color: #d7ddef;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 940px) {
+  .slides-view.is-vertical {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .slides-view.is-vertical .slides-stage-shell {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .slides-view.is-vertical .slides-thumbnails {
+    min-width: 0;
+    max-width: none;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.1rem 0.05rem 0.2rem;
+  }
+
+  .slides-view.is-vertical .slides-thumbnail {
+    width: auto;
+    min-width: 156px;
+    max-width: 220px;
+  }
+
+  .slides-thumbnail {
+    min-width: 156px;
+  }
+}

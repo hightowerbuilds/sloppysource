@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { Outlet } from "@tanstack/react-router";
 import { supabase } from "../lib/supabase.ts";
+import { Navbar } from "./Navbar.tsx";
 import "../App.css";
 
 export function RootLayout() {
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -22,34 +22,9 @@ export function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    await navigate({ to: "/login" });
-  }
-
-  const username = user?.user_metadata?.username as string | undefined;
-
   return (
     <main className="app-shell">
-      <header className="navbar">
-        <p className="brand">sloppysource.dev</p>
-        {user ? (
-          <nav className="nav-links">
-            <Link to="/" className="nav-button" activeOptions={{ exact: true }}>
-              List
-            </Link>
-            <span className="nav-separator" />
-            <span className="nav-user">{username ?? "User"}</span>
-            <button
-              className="nav-button"
-              type="button"
-              onClick={() => void handleLogout()}
-            >
-              Log out
-            </button>
-          </nav>
-        ) : null}
-      </header>
+      <Navbar user={user} />
       <Outlet />
     </main>
   );
