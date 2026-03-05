@@ -1,0 +1,217 @@
+.workspace {
+  min-height: min(70vh, 780px);
+  display: block;
+}
+
+.project-page {
+  min-width: 0;
+  padding: 1rem clamp(0.9rem, 2vw, 1.5rem) 1.35rem;
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(221, 226, 240, 0.15);
+  border-radius: 14px;
+  background: transparent;
+}
+
+.project-page-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.project-page-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+  letter-spacing: 0.01em;
+}
+
+.project-page-subtitle {
+  margin: 0;
+  color: #9ea9bf;
+}
+
+.project-page-panel {
+  border: 1px dashed rgba(174, 186, 212, 0.28);
+  border-radius: 12px;
+  padding: 1rem;
+  background: transparent;
+}
+
+.project-form {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 620px;
+}
+
+.project-label {
+  color: #bdc8df;
+  font-size: 0.9rem;
+}
+
+.project-input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(175, 190, 220, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: #ecf1ff;
+  font: inherit;
+}
+
+.project-input:focus {
+  outline: 1px solid #8ac8ff;
+  outline-offset: 1px;
+  border-color: rgba(138, 200, 255, 0.5);
+}
+
+.project-primary-button {
+  display: inline-block;
+  width: fit-content;
+  margin: 0;
+  color: #8ac8ff;
+  font-size: 0.82rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 400;
+  border: 1px solid rgba(138, 200, 255, 0.6);
+  border-radius: 8px;
+  background: transparent;
+  padding: 0.24rem 0.58rem;
+  cursor: pointer;
+  transition: opacity 140ms ease;
+  font: inherit;
+}
+
+.project-primary-button:hover {
+  opacity: 0.74;
+}
+
+.project-primary-button:focus-visible {
+  outline: 1px solid #8ac8ff;
+  outline-offset: 2px;
+}
+
+.project-primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.project-list-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.project-list-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.project-item {
+  border: 1px solid rgba(175, 190, 220, 0.2);
+  border-radius: 10px;
+  padding: 0.7rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.project-item-main {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-item-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.project-item-meta {
+  margin: 0;
+  color: #a9b5cf;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.project-status {
+  margin: 0;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.project-status-active {
+  border: 1px solid rgba(139, 220, 156, 0.7);
+  color: #b8f3c2;
+}
+
+.project-status-deleting {
+  border: 1px solid rgba(255, 208, 140, 0.7);
+  color: #ffd9a3;
+}
+
+.project-status-deleted {
+  border: 1px solid rgba(145, 161, 191, 0.7);
+  color: #c3cee8;
+}
+
+.project-status-archived {
+  border: 1px solid rgba(132, 170, 220, 0.7);
+  color: #b7d6ff;
+}
+
+.project-status-error {
+  border: 1px solid rgba(255, 140, 140, 0.8);
+  color: #ffcbcb;
+}
+
+.project-item-error {
+  margin: 0;
+  color: #ffcbcb;
+  font-size: 0.84rem;
+}
+
+.project-item-actions {
+  display: grid;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.project-end-button {
+  border: 1px solid rgba(175, 190, 220, 0.18);
+  border-radius: 10px;
+  background: transparent;
+  color: #f2d4d4;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.project-end-button:hover:enabled {
+  border-color: rgba(254, 131, 131, 0.7);
+  color: #ffd8d8;
+}
+
+.project-end-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .project-item {
+    flex-direction: column;
+  }
+}

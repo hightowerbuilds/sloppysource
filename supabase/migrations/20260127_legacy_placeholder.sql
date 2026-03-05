@@ -1,0 +1,2 @@
+-- Legacy remote migration placeholder: 20260127
+-- Intentionally empty to align local migration history with remote.

@@ -1,8 +1,10 @@
 import type { User } from "@supabase/supabase-js";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.ts";
 import { getUserStorageUsage } from "../lib/supabaseDb.ts";
+import { storageUsageQueryKey } from "../lib/queryKeys.ts";
+import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
 import { formatBytes } from "../lib/format.ts";
 import "./Navbar.css";
 
@@ -12,16 +14,25 @@ interface NavbarProps {
 
 export function Navbar({ user }: NavbarProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { setDocId } = useSelectedDoc();
+  const userId = user?.id ?? null;
 
   const storageQuery = useQuery({
-    queryKey: ["storage-usage"],
+    queryKey: storageUsageQueryKey(userId),
     queryFn: getUserStorageUsage,
     staleTime: 30_000,
-    enabled: !!user,
+    enabled: !!userId,
   });
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Failed to log out:", error);
+      return;
+    }
+    setDocId(null);
+    queryClient.clear();
     await navigate({ to: "/login" });
   }
 
@@ -37,7 +48,17 @@ export function Navbar({ user }: NavbarProps) {
           {user ? (
             <>
               <Link to="/" className="nav-button" activeOptions={{ exact: true }}>
+                Home
+              </Link>
+              <Link to="/upload" className="nav-button" activeOptions={{ exact: true }}>
                 Upload
+              </Link>
+              <Link
+                to="/project"
+                className="nav-button"
+                activeOptions={{ exact: true }}
+              >
+                Project
               </Link>
               <Link
                 to="/display"

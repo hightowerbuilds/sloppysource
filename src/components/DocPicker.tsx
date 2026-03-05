@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listDocuments, type DocumentMeta } from "../lib/supabaseDb.ts";
+import { documentsQueryKey } from "../lib/queryKeys.ts";
+import { useAuthUser } from "../lib/useAuthUser.ts";
 import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
 import "./DocPicker.css";
 
@@ -10,13 +12,16 @@ interface DocPickerProps {
 
 export function DocPicker({ onSelect }: DocPickerProps) {
   const { docId, setDocId } = useSelectedDoc();
+  const user = useAuthUser();
+  const userId = user?.id ?? null;
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const documentsQuery = useQuery({
-    queryKey: ["documents"] as const,
+    queryKey: documentsQueryKey(userId),
     queryFn: listDocuments,
     staleTime: 30_000,
+    enabled: !!userId,
   });
 
   const documents = documentsQuery.data ?? [];

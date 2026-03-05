@@ -32,6 +32,22 @@ const homeRoute = createRoute({
   },
 }).lazy(() => import("./pages/HomePage.tsx").then((m) => m.Route));
 
+const uploadRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/upload",
+  beforeLoad: async () => {
+    await requireAuth();
+  },
+}).lazy(() => import("./pages/UploadPage.tsx").then((m) => m.Route));
+
+const projectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/project",
+  beforeLoad: async () => {
+    await requireAuth();
+  },
+}).lazy(() => import("./pages/ProjectPage.tsx").then((m) => m.Route));
+
 const displayRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/display",
@@ -48,7 +64,14 @@ const searchRoute = createRoute({
   },
 }).lazy(() => import("./pages/SearchPage.tsx").then((m) => m.Route));
 
-const routeTree = rootRoute.addChildren([loginRoute, homeRoute, displayRoute, searchRoute]);
+const routeTree = rootRoute.addChildren([
+  loginRoute,
+  homeRoute,
+  uploadRoute,
+  projectRoute,
+  displayRoute,
+  searchRoute,
+]);
 
 export const router = createRouter({ routeTree });
 

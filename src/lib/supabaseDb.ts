@@ -13,10 +13,22 @@ export type DocumentMeta = Omit<StoredDocument, 'markdown'>
 
 const MAX_USER_STORAGE_BYTES = 100 * 1024 * 1024 // 100 MB
 
+async function requireAuthenticatedUserId(errorMessage: string): Promise<string> {
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error) throw new Error(error.message)
+  if (!user) throw new Error(errorMessage)
+
+  return user.id
+}
+
 export async function listDocuments(): Promise<DocumentMeta[]> {
+  const userId = await requireAuthenticatedUserId('You must be logged in to view documents.')
+
   const { data, error } = await supabase
     .from('documents')
     .select('id, name, size_bytes, created_at, updated_at')
+    .eq('user_id', userId)
     .order('updated_at', { ascending: false })
 
   if (error) throw new Error(error.message)
@@ -31,9 +43,12 @@ export async function listDocuments(): Promise<DocumentMeta[]> {
 }
 
 export async function getDocument(id: string): Promise<StoredDocument | null> {
+  const userId = await requireAuthenticatedUserId('You must be logged in to view documents.')
+
   const { data, error } = await supabase
     .from('documents')
     .select('id, name, markdown, size_bytes, created_at, updated_at')
+    .eq('user_id', userId)
     .eq('id', id)
     .maybeSingle()
 
@@ -51,14 +66,13 @@ export async function getDocument(id: string): Promise<StoredDocument | null> {
 }
 
 export async function putDocument(document: StoredDocument): Promise<StoredDocument> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('You must be logged in to upload documents.')
+  const userId = await requireAuthenticatedUserId('You must be logged in to upload documents.')
 
   // Check storage quota (exclude this document in case of overwrite)
   const { data: usageData, error: usageError } = await supabase
     .from('documents')
     .select('size_bytes')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .neq('id', document.id)
 
   if (usageError) throw new Error(usageError.message)
@@ -81,7 +95,7 @@ export async function putDocument(document: StoredDocument): Promise<StoredDocum
     .from('documents')
     .upsert({
       id: document.id,
-      user_id: user.id,
+      user_id: userId,
       name: document.name,
       markdown: document.markdown,
       size_bytes: document.sizeBytes,
@@ -104,38 +118,35 @@ export async function putDocument(document: StoredDocument): Promise<StoredDocum
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('You must be logged in.')
+  const userId = await requireAuthenticatedUserId('You must be logged in.')
 
   const { error } = await supabase
     .from('documents')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 }
 
 export async function clearDocuments(): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('You must be logged in.')
+  const userId = await requireAuthenticatedUserId('You must be logged in.')
 
   const { error } = await supabase
     .from('documents')
     .delete()
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 }
 
 export async function getUserStorageUsage(): Promise<{ usedBytes: number; limitBytes: number }> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('You must be logged in.')
+  const userId = await requireAuthenticatedUserId('You must be logged in.')
 
   const { data, error } = await supabase
     .from('documents')
     .select('size_bytes')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 

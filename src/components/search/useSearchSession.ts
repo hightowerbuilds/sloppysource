@@ -182,6 +182,14 @@ export function useSearchSession({ docId, markdown }: UseSearchSessionArgs) {
     }));
   }
 
+  function toggleRegex() {
+    setCurrentPage(1);
+    setOptions((current) => ({
+      ...current,
+      regex: !current.regex,
+    }));
+  }
+
   const resetSearch = useCallback(() => {
     requestIdRef.current += 1;
     setQuery("");
@@ -208,6 +216,7 @@ export function useSearchSession({ docId, markdown }: UseSearchSessionArgs) {
     toggleSearchTag,
     toggleCaseSensitive,
     toggleWholeWord,
+    toggleRegex,
     resetSearch,
   };
 }

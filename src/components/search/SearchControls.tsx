@@ -9,6 +9,7 @@ interface SearchControlsProps {
   onQueryChange: (value: string) => void;
   onToggleCaseSensitive: () => void;
   onToggleWholeWord: () => void;
+  onToggleRegex: () => void;
   onToggleTag: (tag: SearchTag) => void;
 }
 
@@ -19,6 +20,7 @@ export function SearchControls({
   onQueryChange,
   onToggleCaseSensitive,
   onToggleWholeWord,
+  onToggleRegex,
   onToggleTag,
 }: SearchControlsProps) {
   return (
@@ -49,6 +51,13 @@ export function SearchControls({
           onClick={onToggleWholeWord}
         >
           Whole word
+        </button>
+        <button
+          type="button"
+          className={`search-toggle${options.regex ? " is-active" : ""}`}
+          onClick={onToggleRegex}
+        >
+          Regex
         </button>
         <span className="search-options-divider" />
         {SEARCH_TAG_OPTIONS.map((tagOption) => (
