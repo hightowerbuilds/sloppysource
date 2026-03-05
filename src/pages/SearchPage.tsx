@@ -5,7 +5,9 @@ import { SearchControls } from "../components/search/SearchControls.tsx";
 import { SearchResults } from "../components/search/SearchResults.tsx";
 import { SearchSummary } from "../components/search/SearchSummary.tsx";
 import { useSearchSession } from "../components/search/useSearchSession.ts";
+import { documentQueryKey } from "../lib/queryKeys.ts";
 import { getDocument } from "../lib/supabaseDb.ts";
+import { useAuthUser } from "../lib/useAuthUser.ts";
 import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
 import "../components/search/SearchPageLayout.css";
 
@@ -15,12 +17,14 @@ export const Route = createLazyRoute("/search")({
 
 function SearchPage() {
   const { docId } = useSelectedDoc();
+  const user = useAuthUser();
+  const userId = user?.id ?? null;
 
   const documentQuery = useQuery({
-    queryKey: ["document", docId] as const,
+    queryKey: documentQueryKey(userId, docId),
     queryFn: () => getDocument(docId!),
     staleTime: 60_000,
-    enabled: !!docId,
+    enabled: !!userId && !!docId,
   });
 
   const document = documentQuery.data ?? null;
@@ -39,6 +43,7 @@ function SearchPage() {
     toggleSearchTag,
     toggleCaseSensitive,
     toggleWholeWord,
+    toggleRegex,
     resetSearch,
   } = useSearchSession({
     docId,
@@ -73,6 +78,7 @@ function SearchPage() {
               onQueryChange={handleQueryChange}
               onToggleCaseSensitive={toggleCaseSensitive}
               onToggleWholeWord={toggleWholeWord}
+              onToggleRegex={toggleRegex}
               onToggleTag={toggleSearchTag}
             />
 

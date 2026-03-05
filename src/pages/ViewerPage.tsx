@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { createLazyRoute } from "@tanstack/react-router";
 import ReactMarkdown, { type Components, type ExtraProps } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { documentQueryKey } from "../lib/queryKeys.ts";
 import { getDocument } from "../lib/supabaseDb.ts";
+import { useAuthUser } from "../lib/useAuthUser.ts";
 import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
 import { AsciiLoader } from "../components/AsciiLoader.tsx";
 import { DocPicker } from "../components/DocPicker.tsx";
@@ -62,6 +64,8 @@ export const Route = createLazyRoute("/display")({
 
 function ViewerPage() {
   const { docId } = useSelectedDoc();
+  const user = useAuthUser();
+  const userId = user?.id ?? null;
   const [viewerMode, setViewerMode] = useState<ViewerMode>("rendered");
   const [horizontalSlideFontScale, setHorizontalSlideFontScale] = useState(
     DEFAULT_SLIDE_FONT_SCALE,
@@ -84,10 +88,10 @@ function ViewerPage() {
   const poseListRef = useRef<HTMLUListElement | null>(null);
 
   const documentQuery = useQuery({
-    queryKey: ["document", docId] as const,
+    queryKey: documentQueryKey(userId, docId),
     queryFn: () => getDocument(docId!),
     staleTime: 60_000,
-    enabled: !!docId,
+    enabled: !!userId && !!docId,
   });
 
   const document = documentQuery.data ?? null;

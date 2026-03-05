@@ -5,7 +5,7 @@ This project is a Bun-managed React + TypeScript + Vite app.
 
 - `src/main.tsx`: app bootstrap (React Query, router, selected-doc provider).
 - `src/router.tsx`: route tree and auth guards.
-- `src/pages/`: route-level screens (`HomePage`, `ViewerPage`, `SearchPage`, `LoginPage`).
+- `src/pages/`: route-level screens (`HomePage`, `UploadPage`, `ProjectPage`, `ViewerPage`, `SearchPage`, `LoginPage`).
 - `src/components/`: shared UI (`Navbar`, `DocPicker`, layout shell).
 - `src/lib/`: Supabase client/data access, formatting helpers, context, search worker.
 - `public/`: static assets.
@@ -46,3 +46,9 @@ Current history uses short, imperative commits (e.g., `readying bun lock`).
 ## Security & Configuration Tips
 - Required env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 - Never commit secrets; keep credentials in `.env` and ensure `.gitignore` coverage.
+
+## Session Summaries
+- Codex sessions must maintain a daily summary in `daily-summarys/codex/`.
+- Use local date naming: `YYYY-MM-DD.md` (for example, `daily-summarys/codex/2026-03-04.md`).
+- If today's file already exists, append/update it during the session instead of creating a duplicate.
+- If today's file does not exist, create it first, then keep updating it as work progresses.

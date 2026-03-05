@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { Outlet } from "@tanstack/react-router";
 import { supabase } from "../lib/supabase.ts";
+import { AuthUserContext } from "../lib/authUserContext.ts";
 import { Navbar } from "./Navbar.tsx";
 import "../App.css";
 
@@ -24,8 +25,10 @@ export function RootLayout() {
 
   return (
     <main className="app-shell">
-      <Navbar user={user} />
-      <Outlet />
+      <AuthUserContext.Provider value={user}>
+        <Navbar user={user} />
+        <Outlet />
+      </AuthUserContext.Provider>
     </main>
   );
 }
