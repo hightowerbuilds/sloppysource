@@ -13,3 +13,7 @@ export function storageUsageQueryKey(userId: string | null) {
 export function projectsQueryKey(userId: string | null) {
   return ["projects", userId] as const;
 }
+
+export function projectActivityQueryKey(userId: string | null, projectId: string) {
+  return ["project-activity", userId, projectId] as const;
+}

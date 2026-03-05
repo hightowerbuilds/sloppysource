@@ -5,6 +5,7 @@ This directory contains the Project lifecycle edge functions:
 - `project-create`
 - `project-export-zip`
 - `project-end-session`
+- `project-github-activity`
 - `project-cleanup`
 
 ## Required Secrets
@@ -27,5 +28,6 @@ Set these in Supabase project secrets:
    - `supabase functions deploy project-create`
    - `supabase functions deploy project-export-zip`
    - `supabase functions deploy project-end-session`
+   - `supabase functions deploy project-github-activity`
    - `supabase functions deploy project-cleanup`
 3. Configure a scheduled job to call `project-cleanup` with header `x-cleanup-secret`.

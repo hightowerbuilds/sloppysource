@@ -1,0 +1,135 @@
+.project-activity-page {
+  min-width: 0;
+  padding: 1rem clamp(0.9rem, 2vw, 1.5rem) 1.35rem;
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(221, 226, 240, 0.15);
+  border-radius: 14px;
+  background: transparent;
+}
+
+.project-activity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.project-activity-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.project-activity-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+  letter-spacing: 0.01em;
+}
+
+.project-activity-subtitle {
+  margin: 0;
+  color: #9ea9bf;
+}
+
+.project-activity-primary-button,
+.project-activity-link-button {
+  display: inline-block;
+  width: fit-content;
+  color: #d9ecff;
+  border: 1px solid rgba(161, 189, 229, 0.5);
+  border-radius: 8px;
+  background: transparent;
+  padding: 0.24rem 0.58rem;
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.project-activity-primary-button {
+  cursor: pointer;
+  font: inherit;
+}
+
+.project-activity-primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.project-activity-summary {
+  border: 1px dashed rgba(174, 186, 212, 0.28);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(20, 30, 48, 0.18);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-activity-summary-line {
+  margin: 0;
+  color: #cfd8ee;
+}
+
+.project-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.project-activity-panel {
+  border: 1px solid rgba(175, 190, 220, 0.2);
+  border-radius: 10px;
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.45rem;
+  min-height: 180px;
+}
+
+.project-activity-panel-title {
+  margin: 0;
+  color: #dbe9ff;
+  font-size: 0.95rem;
+}
+
+.project-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.project-activity-item {
+  border: 1px dashed rgba(174, 186, 212, 0.28);
+  border-radius: 8px;
+  padding: 0.5rem 0.55rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.project-activity-item a {
+  color: #b8dcff;
+  text-decoration: none;
+}
+
+.project-activity-item a:hover {
+  opacity: 0.76;
+}
+
+.project-activity-meta {
+  margin: 0;
+  color: #b9c6e2;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 860px) {
+  .project-activity-header {
+    flex-direction: column;
+  }
+
+  .project-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}

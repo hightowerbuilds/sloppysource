@@ -48,6 +48,14 @@ const projectRoute = createRoute({
   },
 }).lazy(() => import("./pages/ProjectPage.tsx").then((m) => m.Route));
 
+const projectActivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/project/$projectId/activity",
+  beforeLoad: async () => {
+    await requireAuth();
+  },
+}).lazy(() => import("./pages/ProjectActivityPage.tsx").then((m) => m.Route));
+
 const displayRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/display",
@@ -69,6 +77,7 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   uploadRoute,
   projectRoute,
+  projectActivityRoute,
   displayRoute,
   searchRoute,
 ]);

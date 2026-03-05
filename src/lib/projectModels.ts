@@ -32,3 +32,70 @@ export interface EndProjectSessionResponse {
   projectId: string;
   status: ProjectStatus;
 }
+
+export interface ProjectActivityPullRequest {
+  id: number;
+  number: number;
+  title: string;
+  state: string;
+  draft: boolean;
+  mergedAt: string | null;
+  updatedAt: string;
+  authorLogin: string | null;
+  headRef: string;
+  baseRef: string;
+  url: string;
+}
+
+export interface ProjectActivityCheck {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  event: string;
+  branch: string | null;
+  createdAt: string;
+  updatedAt: string;
+  url: string;
+}
+
+export interface ProjectActivityCommit {
+  sha: string;
+  shortSha: string;
+  message: string;
+  authorName: string | null;
+  authorLogin: string | null;
+  committedAt: string | null;
+  url: string;
+}
+
+export interface ProjectActivityAuditEvent {
+  id: string;
+  action: string;
+  result: string;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface ProjectGitHubMeta {
+  status: number;
+  requestId: string | null;
+  rateLimitRemaining: string | null;
+  rateLimitReset: string | null;
+  retryAfter: string | null;
+}
+
+export interface ProjectGitHubActivityResponse {
+  projectId: string;
+  repoFullName: string;
+  pulledAt: string;
+  pullRequests: ProjectActivityPullRequest[];
+  checks: ProjectActivityCheck[];
+  commits: ProjectActivityCommit[];
+  auditEvents: ProjectActivityAuditEvent[];
+  githubMeta: {
+    pulls: ProjectGitHubMeta;
+    commits: ProjectGitHubMeta;
+    checks: ProjectGitHubMeta;
+  };
+}
