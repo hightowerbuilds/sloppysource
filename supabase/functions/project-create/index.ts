@@ -4,6 +4,7 @@ import {
   githubCreateRepoFromTemplate,
   githubDeleteRepoByFullName,
   jsonResponse,
+  mapGitHubErrorToHttp,
   preflightResponse,
   requireProjectUser,
   resolveProjectRepoName,
@@ -34,8 +35,78 @@ serve(async (req) => {
     if (!name) return errorResponse("Project name is required.", 400);
     if (!sessionKey) return errorResponse("Session key is required.", 400);
 
+    const { data: existingSessionRow, error: existingSessionError } = await supabase
+      .from("project_sessions")
+      .select("id, project_id")
+      .eq("user_id", user.id)
+      .eq("session_key", sessionKey)
+      .eq("state", "active")
+      .maybeSingle();
+
+    if (existingSessionError) throw new Error(existingSessionError.message);
+
+    if (existingSessionRow?.project_id) {
+      const existingProjectId = existingSessionRow.project_id as string;
+      const { data: existingProjectRow, error: existingProjectError } = await supabase
+        .from("projects")
+        .select("id, status, github_repo_full_name")
+        .eq("id", existingProjectId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingProjectError) throw new Error(existingProjectError.message);
+
+      const existingRepoFullName = existingProjectRow?.github_repo_full_name as string | null | undefined;
+      if (existingProjectRow && existingRepoFullName) {
+        await writeProjectAuditLog({
+          supabase,
+          projectId: existingProjectId,
+          userId: user.id,
+          action: "project-create",
+          result: "reused",
+          details: {
+            sessionKey,
+            repoFullName: existingRepoFullName,
+          },
+        });
+
+        return jsonResponse({
+          projectId: existingProjectId,
+          sessionId: existingSessionRow.id as string,
+          repoFullName: existingRepoFullName,
+          status: existingProjectRow.status as string,
+        });
+      }
+    }
+
     const repoName = resolveProjectRepoName(name);
-    const repo = await githubCreateRepoFromTemplate(repoName);
+    let repo: { id: number; full_name: string };
+    let githubCreateMeta: Record<string, unknown> | null = null;
+
+    try {
+      const created = await githubCreateRepoFromTemplate(repoName);
+      repo = created.repo;
+      githubCreateMeta = {
+        githubRequestId: created.meta.requestId,
+        rateLimitRemaining: created.meta.rateLimitRemaining,
+        rateLimitReset: created.meta.rateLimitReset,
+      };
+    } catch (error) {
+      const mapped = mapGitHubErrorToHttp(error);
+      await writeProjectAuditLog({
+        supabase,
+        userId: user.id,
+        action: "project-create",
+        result: "error",
+        details: {
+          phase: "github-create",
+          sessionKey,
+          repoName,
+          ...(mapped.details ?? {}),
+        },
+      });
+      return errorResponse(mapped.message, mapped.status);
+    }
 
     const { data: projectRow, error: projectError } = await supabase
       .from("projects")
@@ -51,7 +122,31 @@ serve(async (req) => {
       .single();
 
     if (projectError || !projectRow) {
-      await githubDeleteRepoByFullName(repo.full_name);
+      let rollbackMeta: Record<string, unknown> | null = null;
+      try {
+        const rollback = await githubDeleteRepoByFullName(repo.full_name);
+        rollbackMeta = {
+          githubRequestId: rollback.requestId,
+          rateLimitRemaining: rollback.rateLimitRemaining,
+        };
+      } catch {
+        // best effort rollback
+      }
+
+      await writeProjectAuditLog({
+        supabase,
+        userId: user.id,
+        action: "project-create",
+        result: "error",
+        details: {
+          phase: "project-row-insert",
+          sessionKey,
+          repoFullName: repo.full_name,
+          dbError: projectError?.message ?? "Failed to insert project row.",
+          rollbackMeta,
+        },
+      });
+
       throw new Error(projectError?.message ?? "Failed to create project record.");
     }
 
@@ -67,8 +162,13 @@ serve(async (req) => {
       .single();
 
     if (sessionError || !sessionRow) {
+      let rollbackMeta: Record<string, unknown> | null = null;
       try {
-        await githubDeleteRepoByFullName(repo.full_name);
+        const rollback = await githubDeleteRepoByFullName(repo.full_name);
+        rollbackMeta = {
+          githubRequestId: rollback.requestId,
+          rateLimitRemaining: rollback.rateLimitRemaining,
+        };
       } catch {
         // best effort rollback; keep project row for diagnostics if deletion fails
       }
@@ -81,6 +181,22 @@ serve(async (req) => {
         })
         .eq("id", projectRow.id)
         .eq("user_id", user.id);
+
+      await writeProjectAuditLog({
+        supabase,
+        projectId: projectRow.id as string,
+        userId: user.id,
+        action: "project-create",
+        result: "error",
+        details: {
+          phase: "session-row-insert",
+          sessionKey,
+          repoFullName: repo.full_name,
+          dbError: sessionError?.message ?? "Failed to create project session.",
+          rollbackMeta,
+        },
+      });
+
       throw new Error(sessionError?.message ?? "Failed to create project session.");
     }
 
@@ -92,6 +208,8 @@ serve(async (req) => {
       result: "success",
       details: {
         repoFullName: repo.full_name,
+        sessionKey,
+        githubCreateMeta,
       },
     });
 
@@ -102,7 +220,7 @@ serve(async (req) => {
       status: projectRow.status,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project creation failed.";
-    return errorResponse(message, 500);
+    const mapped = mapGitHubErrorToHttp(error);
+    return errorResponse(mapped.message, mapped.status);
   }
 });

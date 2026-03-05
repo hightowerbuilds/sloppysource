@@ -4,6 +4,7 @@ import type {
   CreateProjectResponse,
   EndProjectSessionResponse,
   ExportProjectZipResponse,
+  ProjectGitHubActivityResponse,
   ProjectSummary,
 } from "./projectModels.ts";
 
@@ -23,6 +24,7 @@ export async function listProjects(): Promise<ProjectSummary[]> {
     .from("projects")
     .select("id, name, github_repo_full_name, status, created_at, updated_at, ended_at, last_error")
     .eq("user_id", userId)
+    .neq("status", "deleted")
     .order("updated_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -81,6 +83,22 @@ export async function endProjectSession(
 
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Ending project session failed.");
+
+  return data;
+}
+
+export async function getProjectGitHubActivity(
+  projectId: string,
+): Promise<ProjectGitHubActivityResponse> {
+  const { data, error } = await supabase.functions.invoke<ProjectGitHubActivityResponse>(
+    "project-github-activity",
+    {
+      body: { projectId },
+    },
+  );
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Fetching project activity failed.");
 
   return data;
 }
