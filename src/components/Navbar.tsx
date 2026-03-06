@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase.ts";
-import { getUserStorageUsage } from "../lib/supabaseDb.ts";
-import { storageUsageQueryKey } from "../lib/queryKeys.ts";
 import { useSelectedDoc } from "../lib/useSelectedDoc.ts";
-import { formatBytes } from "../lib/format.ts";
 import "./Navbar.css";
 
 interface NavbarProps {
@@ -18,16 +15,8 @@ export function Navbar({ user }: NavbarProps) {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { setDocId } = useSelectedDoc();
-  const userId = user?.id ?? null;
   const [isMdsOpen, setIsMdsOpen] = useState(false);
   const mdsDropdownRef = useRef<HTMLDivElement | null>(null);
-
-  const storageQuery = useQuery({
-    queryKey: storageUsageQueryKey(userId),
-    queryFn: getUserStorageUsage,
-    staleTime: 30_000,
-    enabled: !!userId,
-  });
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
@@ -41,8 +30,6 @@ export function Navbar({ user }: NavbarProps) {
   }
 
   const username = user?.user_metadata?.username as string | undefined;
-  const storage = storageQuery.data;
-  const usageRatio = storage ? storage.usedBytes / storage.limitBytes : 0;
   const isMdsActive =
     location.pathname === "/upload" ||
     location.pathname === "/display" ||
@@ -143,25 +130,6 @@ export function Navbar({ user }: NavbarProps) {
           ) : null}
         </div>
       </header>
-      {user && storage ? (
-        <div className="navbar-storage">
-          <span className="navbar-storage-label">
-            {formatBytes(storage.usedBytes)} / {formatBytes(storage.limitBytes)}
-          </span>
-          <div className="navbar-quota-track">
-            <div
-              className={`navbar-quota-fill${
-                usageRatio > 0.9
-                  ? " is-danger"
-                  : usageRatio > 0.7
-                    ? " is-warning"
-                    : ""
-              }`}
-              style={{ width: `${Math.min(100, usageRatio * 100)}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
       {user ? (
         <div className="user-corner">
           <span className="nav-user">{username ?? "User"}</span>

@@ -77,6 +77,13 @@ export interface ProjectActivityAuditEvent {
   createdAt: string;
 }
 
+export interface ProjectActivityMarkdownFile {
+  name: string;
+  path: string;
+  htmlUrl: string;
+  size: number;
+}
+
 export interface ProjectGitHubMeta {
   status: number;
   requestId: string | null;
@@ -93,9 +100,23 @@ export interface ProjectGitHubActivityResponse {
   checks: ProjectActivityCheck[];
   commits: ProjectActivityCommit[];
   auditEvents: ProjectActivityAuditEvent[];
+  markdownFiles: ProjectActivityMarkdownFile[];
   githubMeta: {
     pulls: ProjectGitHubMeta;
     commits: ProjectGitHubMeta;
     checks: ProjectGitHubMeta;
+    markdownFiles: ProjectGitHubMeta | null;
   };
+}
+
+export interface ProjectMarkdownFileContentResponse {
+  projectId: string;
+  repoFullName: string;
+  path: string;
+  name: string;
+  htmlUrl: string;
+  content: string;
+  encoding: string;
+  pulledAt: string;
+  githubMeta: ProjectGitHubMeta;
 }

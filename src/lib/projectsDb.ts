@@ -5,6 +5,7 @@ import type {
   EndProjectSessionResponse,
   ExportProjectZipResponse,
   ProjectGitHubActivityResponse,
+  ProjectMarkdownFileContentResponse,
   ProjectSummary,
 } from "./projectModels.ts";
 
@@ -15,6 +16,30 @@ async function requireAuthenticatedUserId(errorMessage: string): Promise<string>
   if (!user) throw new Error(errorMessage);
 
   return user.id;
+}
+
+async function requireAuthenticatedAccessToken(errorMessage: string): Promise<string> {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error(errorMessage);
+
+  const initialSessionResult = await supabase.auth.getSession();
+  if (initialSessionResult.error) throw new Error(initialSessionResult.error.message);
+  let session = initialSessionResult.data.session;
+
+  const expiresAtMs = (session?.expires_at ?? 0) * 1000;
+  const shouldRefresh = !session?.access_token || expiresAtMs <= Date.now() + 30_000;
+
+  if (shouldRefresh) {
+    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) throw new Error(refreshError.message);
+    session = refreshed.session;
+  }
+
+  if (!session?.access_token) throw new Error(errorMessage);
+
+  return session.access_token;
 }
 
 export async function listProjects(): Promise<ProjectSummary[]> {
@@ -44,10 +69,17 @@ export async function listProjects(): Promise<ProjectSummary[]> {
 export async function createProject(
   input: CreateProjectInput,
 ): Promise<CreateProjectResponse> {
+  const accessToken = await requireAuthenticatedAccessToken(
+    "You must be logged in to create a project.",
+  );
+
   const { data, error } = await supabase.functions.invoke<CreateProjectResponse>(
     "project-create",
     {
       body: input,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   );
 
@@ -58,10 +90,17 @@ export async function createProject(
 }
 
 export async function exportProjectZip(projectId: string): Promise<ExportProjectZipResponse> {
+  const accessToken = await requireAuthenticatedAccessToken(
+    "You must be logged in to export this project.",
+  );
+
   const { data, error } = await supabase.functions.invoke<ExportProjectZipResponse>(
     "project-export-zip",
     {
       body: { projectId },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   );
 
@@ -74,10 +113,17 @@ export async function exportProjectZip(projectId: string): Promise<ExportProject
 export async function endProjectSession(
   projectId: string,
 ): Promise<EndProjectSessionResponse> {
+  const accessToken = await requireAuthenticatedAccessToken(
+    "You must be logged in to end this project session.",
+  );
+
   const { data, error } = await supabase.functions.invoke<EndProjectSessionResponse>(
     "project-end-session",
     {
       body: { projectId },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   );
 
@@ -90,15 +136,46 @@ export async function endProjectSession(
 export async function getProjectGitHubActivity(
   projectId: string,
 ): Promise<ProjectGitHubActivityResponse> {
+  const accessToken = await requireAuthenticatedAccessToken(
+    "Your session expired. Please log in again to load project activity.",
+  );
+
   const { data, error } = await supabase.functions.invoke<ProjectGitHubActivityResponse>(
     "project-github-activity",
     {
       body: { projectId },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   );
 
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Fetching project activity failed.");
+
+  return data;
+}
+
+export async function getProjectMarkdownFile(
+  projectId: string,
+  path: string,
+): Promise<ProjectMarkdownFileContentResponse> {
+  const accessToken = await requireAuthenticatedAccessToken(
+    "Your session expired. Please log in again to load markdown files.",
+  );
+
+  const { data, error } = await supabase.functions.invoke<ProjectMarkdownFileContentResponse>(
+    "project-github-markdown-file",
+    {
+      body: { projectId, path },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Fetching project markdown file failed.");
 
   return data;
 }

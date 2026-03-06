@@ -7,6 +7,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --fx-tv-static-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20220%20220%27%3E%3Cfilter%20id%3D%27n%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%271.4%27%20numOctaves%3D%274%27%20stitchTiles%3D%27stitch%27%2F%3E%3CfeColorMatrix%20type%3D%27saturate%27%20values%3D%270%27%2F%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D%27table%27%20tableValues%3D%270%201%27%2F%3E%3CfeFuncG%20type%3D%27table%27%20tableValues%3D%270%201%27%2F%3E%3CfeFuncB%20type%3D%27table%27%20tableValues%3D%270%201%27%2F%3E%3CfeFuncA%20type%3D%27table%27%20tableValues%3D%270%200.3%27%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23n%29%27%2F%3E%3C%2Fsvg%3E");
 }
 
 *,
@@ -29,4 +30,56 @@ input {
 
 #root {
   min-height: 100vh;
+}
+
+/* Reusable fine-grain TV static effect utilities */
+.fx-tv-static {
+  overflow: hidden;
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  will-change: background-position, background-image;
+}
+
+.fx-tv-static-hover:hover,
+.fx-tv-static-hover:focus-visible,
+.fx-tv-static[data-tv-static="on"] {
+  background-image: var(--fx-tv-static-image);
+  animation: tv-static-shift 200ms steps(2, end) infinite;
+}
+
+@keyframes tv-static-shift {
+  0% {
+    background-position: 0 0;
+  }
+  10% {
+    background-position: -5% -5%;
+  }
+  20% {
+    background-position: -10% 5%;
+  }
+  30% {
+    background-position: 5% -10%;
+  }
+  40% {
+    background-position: -5% 15%;
+  }
+  50% {
+    background-position: -10% 5%;
+  }
+  60% {
+    background-position: 15% 0;
+  }
+  70% {
+    background-position: 0 10%;
+  }
+  80% {
+    background-position: -15% 0;
+  }
+  90% {
+    background-position: 10% 5%;
+  }
+  100% {
+    background-position: 5% 0;
+  }
 }

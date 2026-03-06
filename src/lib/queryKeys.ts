@@ -17,3 +17,11 @@ export function projectsQueryKey(userId: string | null) {
 export function projectActivityQueryKey(userId: string | null, projectId: string) {
   return ["project-activity", userId, projectId] as const;
 }
+
+export function projectMarkdownFileQueryKey(
+  userId: string | null,
+  projectId: string,
+  path: string | null,
+) {
+  return ["project-markdown-file", userId, projectId, path] as const;
+}

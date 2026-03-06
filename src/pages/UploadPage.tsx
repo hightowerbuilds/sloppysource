@@ -3,6 +3,7 @@ import type { ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createLazyRoute, useNavigate } from "@tanstack/react-router";
 import {
+  getUserStorageUsage,
   listDocuments,
   putDocument,
   type DocumentMeta,
@@ -40,6 +41,12 @@ function UploadPage() {
     staleTime: 30_000,
     enabled: !!userId,
   });
+  const storageQuery = useQuery({
+    queryKey: storageUsageQueryKey(userId),
+    queryFn: getUserStorageUsage,
+    staleTime: 30_000,
+    enabled: !!userId,
+  });
 
   const uploadMutation = useMutation<StoredDocument, Error, File>({
     mutationFn: async (file: File) => {
@@ -74,6 +81,8 @@ function UploadPage() {
   });
 
   const documents = useMemo(() => documentsQuery.data ?? [], [documentsQuery.data]);
+  const storage = storageQuery.data;
+  const usageRatio = storage ? storage.usedBytes / storage.limitBytes : 0;
   const isLoadingDocuments = documentsQuery.isPending;
   const isUploading = uploadMutation.isPending;
 
@@ -123,16 +132,36 @@ function UploadPage() {
       <div className="home-page">
         <section className="library" aria-label="Uploaded markdown documents">
           <div className="library-header">
-            <p className="section-title">MD Files</p>
-            <span className="library-count">{documents.length}</span>
             <button
-              className="upload-button library-upload-button"
+              className="upload-button library-upload-button fx-tv-static fx-tv-static-hover"
               type="button"
               onClick={handleUploadClick}
               disabled={isUploading}
             >
               {isUploading ? "Uploading..." : "Upload .md"}
             </button>
+            <p className="library-summary">
+              MD Files: <span className="library-summary-count">{documents.length}</span>
+            </p>
+            {storage ? (
+              <div className="upload-storage">
+                <span className="upload-storage-label">
+                  {formatBytes(storage.usedBytes)} / {formatBytes(storage.limitBytes)}
+                </span>
+                <div className="upload-storage-track">
+                  <div
+                    className={`upload-storage-fill${
+                      usageRatio > 0.9
+                        ? " is-danger"
+                        : usageRatio > 0.7
+                          ? " is-warning"
+                          : ""
+                    }`}
+                    style={{ width: `${Math.min(100, usageRatio * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
           <input
             ref={uploadInputRef}

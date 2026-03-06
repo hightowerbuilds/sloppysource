@@ -66,6 +66,14 @@ interface GitHubWorkflowRunsResponse {
   workflow_runs: GitHubWorkflowRunRow[];
 }
 
+interface GitHubContentRow {
+  type: string;
+  name: string;
+  path: string;
+  size?: number;
+  html_url?: string | null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return preflightResponse();
@@ -117,6 +125,31 @@ serve(async (req) => {
         `List workflow runs for ${repoFullName}`,
       );
 
+      let markdownFilesMeta: typeof pullsResult.meta | null = null;
+      let markdownFiles: Array<{
+        name: string;
+        path: string;
+        size: number;
+        htmlUrl: string;
+      }> = [];
+      try {
+        const markdownResult = await githubGetJson<GitHubContentRow[]>(
+          `/repos/${repoFullName}/contents`,
+          `List root contents for ${repoFullName}`,
+        );
+        markdownFilesMeta = markdownResult.meta;
+        markdownFiles = (Array.isArray(markdownResult.data) ? markdownResult.data : [])
+          .filter(isRootMarkdownFile)
+          .map((row) => ({
+            name: row.name,
+            path: row.path,
+            size: typeof row.size === "number" ? row.size : 0,
+            htmlUrl: row.html_url ?? `https://github.com/${repoFullName}/blob/HEAD/${row.path}`,
+          }));
+      } catch {
+        markdownFilesMeta = null;
+      }
+
       const { data: auditRows, error: auditError } = await supabase
         .from("project_audit_logs")
         .select("id, action, result, details, created_at")
@@ -141,7 +174,9 @@ serve(async (req) => {
             pulls: pullsResult.meta.requestId,
             commits: commitsResult.meta.requestId,
             runs: runsResult.meta.requestId,
+            markdownFiles: markdownFilesMeta?.requestId ?? null,
           },
+          markdownFilesFound: markdownFiles.length,
         },
       });
 
@@ -189,10 +224,12 @@ serve(async (req) => {
           details: (row.details as Record<string, unknown> | null) ?? null,
           createdAt: row.created_at as string,
         })),
+        markdownFiles,
         githubMeta: {
           pulls: pullsResult.meta,
           commits: commitsResult.meta,
           checks: runsResult.meta,
+          markdownFiles: markdownFilesMeta,
         },
       });
     } catch (error) {
@@ -222,4 +259,13 @@ function clampLimit(value: number | undefined): number {
   const fallback = 10;
   if (typeof value !== "number" || Number.isNaN(value)) return fallback;
   return Math.max(3, Math.min(25, Math.floor(value)));
+}
+
+function isRootMarkdownFile(row: GitHubContentRow): boolean {
+  return (
+    row.type === "file" &&
+    typeof row.name === "string" &&
+    row.name.toLowerCase().endsWith(".md") &&
+    row.path === row.name
+  );
 }
