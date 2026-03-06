@@ -39,28 +39,28 @@ function HomePage() {
         </header>
 
         <div className="home-landing-grid">
-          <Link className="home-landing-card" to="/upload">
+          <Link className="home-landing-card fx-tv-static fx-tv-static-hover" to="/upload">
             <p className="home-landing-card-title">Upload</p>
             <p className="home-landing-card-text">
               Add markdown files and manage your document list.
             </p>
           </Link>
 
-          <Link className="home-landing-card" to="/project">
-            <p className="home-landing-card-title">Project</p>
+          <Link className="home-landing-card fx-tv-static fx-tv-static-hover" to="/project">
+            <p className="home-landing-card-title">Projects</p>
             <p className="home-landing-card-text">
               Open project-level tools, notes, and roadmap workflows.
             </p>
           </Link>
 
-          <Link className="home-landing-card" to="/display">
+          <Link className="home-landing-card fx-tv-static fx-tv-static-hover" to="/display">
             <p className="home-landing-card-title">Display</p>
             <p className="home-landing-card-text">
               Read and present the selected markdown document.
             </p>
           </Link>
 
-          <Link className="home-landing-card" to="/search">
+          <Link className="home-landing-card fx-tv-static fx-tv-static-hover" to="/search">
             <p className="home-landing-card-title">Search</p>
             <p className="home-landing-card-text">
               Filter lines by text, regex, and markdown tags.
